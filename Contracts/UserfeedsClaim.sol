@@ -119,6 +119,10 @@ contract UserfeedsClaimWithValueMultiSendUnsafe is Destructible, WithClaim {
   }
 }
 
+// Rinkeby: 0x1f8A01833A0B083CCcd87fffEe50EF1D35621fD2
+// Ropsten: 0x298611B2798d280910274C222A9dbDfBA914B058
+// Kovan:   0x0c20Daa719Cd4fD73eAf23d2Cb687cD07d500E17
+
 contract UserfeedsClaimWithConfigurableValueMultiTransfer is Destructible, WithClaim {
 
   function post(string data, address[] recipients, uint[] values) public payable {
@@ -133,6 +137,10 @@ contract UserfeedsClaimWithConfigurableValueMultiTransfer is Destructible, WithC
     msg.sender.transfer(address(this).balance);
   }
 }
+
+// Rinkeby: 0xA105908d1Bd7e76Ec4Dfddd08d9E0c89F6B39474
+// Ropsten: 0x1A97Aba0fb047cd8cd8F4c14D890bE6E7004fae9
+// Kovan:   0xcF53D90E7f71C7Db557Bc42C5a85D36dD53956C0
 
 contract UserfeedsClaimWithConfigurableTokenMultiTransfer is Destructible, WithClaim {
 
