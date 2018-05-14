@@ -1,4 +1,4 @@
-pragma solidity ^0.4.21;
+pragma solidity ^0.4.23;
 
 contract ERC20 {
 
@@ -20,7 +20,7 @@ contract Ownable {
     _;
   }
 
-  function Ownable() public {
+  constructor() public {
     owner = msg.sender;
   }
 
@@ -116,5 +116,34 @@ contract UserfeedsClaimWithValueMultiSendUnsafe is Destructible, WithClaim {
       address(recipients[i]).send(amount);
     }
     msg.sender.transfer(address(this).balance);
+  }
+}
+
+contract UserfeedsClaimWithConfigurableValueMultiTransfer is Destructible, WithClaim {
+
+  function post(string data, address[] recipients, uint[] values) public payable {
+    emit Claim(data);
+    transfer(recipients, values);
+  }
+
+  function transfer(address[] recipients, uint[] values) public payable {
+    for (uint i = 0; i < recipients.length; i++) {
+      recipients[i].transfer(values[i]);
+    }
+    msg.sender.transfer(address(this).balance);
+  }
+}
+
+contract UserfeedsClaimWithConfigurableTokenMultiTransfer is Destructible, WithClaim {
+
+  function post(string data, address[] recipients, ERC20 token, uint[] values) public {
+    emit Claim(data);
+    transfer(recipients, token, values);
+  }
+
+  function transfer(address[] recipients, ERC20 token, uint[] values) public {
+    for (uint i = 0; i < recipients.length; i++) {
+      require(token.transferFrom(msg.sender, recipients[i], values[i]));
+    }
   }
 }
