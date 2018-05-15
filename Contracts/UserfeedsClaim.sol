@@ -1,8 +1,25 @@
+/*
+ * Contracts' names:
+ * 1) UserfeedsClaim - prefix
+ * 2a) WithoutValueTransfer - simplest case, no transfer
+ * 2b) With - continuation
+ * 3) Configurable - optional, means there is function parameter to decide how much to send to each recipient
+ * 4) Value or Token - value means ether, token means ERC20 or ERC721
+ * 5) Multi - optional, means there are multiple recipients
+ * 6) Send or Transfer - using send or transfer in case of ether, or transferFrom in case of ERC20/ERC721 (no "Send" possible in this case)
+ * 7) Unsafe or NoCheck - optional, means that value returned from send or transferFrom is not checked
+ */
+
 pragma solidity ^0.4.23;
 
 contract ERC20 {
 
   function transferFrom(address from, address to, uint value) public returns (bool success);
+}
+
+contract ERC721 {
+
+  function transferFrom(address from, address to, uint value) public;
 }
 
 contract Ownable {
@@ -152,6 +169,24 @@ contract UserfeedsClaimWithConfigurableTokenMultiTransfer is Destructible, WithC
   function transfer(address[] recipients, ERC20 token, uint[] values) public {
     for (uint i = 0; i < recipients.length; i++) {
       require(token.transferFrom(msg.sender, recipients[i], values[i]));
+    }
+  }
+}
+
+// Rinkeby: 0x042a52f30572A54f504102cc1Fbd1f2B53859D8A
+// Ropsten: 0x616c0ee7C6659a99a99A36f558b318779C3ebC16
+// Kovan:   0x30192DE195f393688ce515489E4E0e0b148e9D8d
+
+contract UserfeedsClaimWithConfigurableTokenMultiTransferNoCheck is Destructible, WithClaim {
+
+  function post(string data, address[] recipients, ERC721 token, uint[] values) public {
+    emit Claim(data);
+    transfer(recipients, token, values);
+  }
+
+  function transfer(address[] recipients, ERC721 token, uint[] values) public {
+    for (uint i = 0; i < recipients.length; i++) {
+      token.transferFrom(msg.sender, recipients[i], values[i]);
     }
   }
 }
