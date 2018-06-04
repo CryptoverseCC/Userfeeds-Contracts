@@ -136,6 +136,7 @@ contract UserfeedsClaimWithValueMultiSendUnsafe is Destructible, WithClaim {
   }
 }
 
+// Mainnet: 0xfad31a5672fbd8243e9691e8a5f958699cd0aaa9
 // Rinkeby: 0x1f8A01833A0B083CCcd87fffEe50EF1D35621fD2
 // Ropsten: 0x298611B2798d280910274C222A9dbDfBA914B058
 // Kovan:   0x0c20Daa719Cd4fD73eAf23d2Cb687cD07d500E17
