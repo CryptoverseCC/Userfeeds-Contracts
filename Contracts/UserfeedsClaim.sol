@@ -10,56 +10,56 @@
  * 7) Unsafe or NoCheck - optional, means that value returned from send or transferFrom is not checked
  */
 
-pragma solidity ^0.4.23;
+pragma solidity ^0.4.24;
 
-contract ERC20 {
+interface ERC20 {
 
-  function transferFrom(address from, address to, uint value) public returns (bool success);
+    function transferFrom(address from, address to, uint value) external returns (bool success);
 }
 
-contract ERC721 {
+interface ERC721 {
 
-  function transferFrom(address from, address to, uint value) public;
+    function transferFrom(address from, address to, uint value) external;
 }
 
 contract Ownable {
 
-  address owner;
-  address pendingOwner;
+    address owner;
+    address pendingOwner;
 
-  modifier onlyOwner {
-    require(msg.sender == owner);
-    _;
-  }
+    modifier onlyOwner {
+        require(msg.sender == owner);
+        _;
+    }
 
-  modifier onlyPendingOwner {
-    require(msg.sender == pendingOwner);
-    _;
-  }
+    modifier onlyPendingOwner {
+        require(msg.sender == pendingOwner);
+        _;
+    }
 
-  constructor() public {
-    owner = msg.sender;
-  }
+    constructor() public {
+        owner = msg.sender;
+    }
 
-  function transferOwnership(address newOwner) public onlyOwner {
-    pendingOwner = newOwner;
-  }
+    function transferOwnership(address newOwner) public onlyOwner {
+        pendingOwner = newOwner;
+    }
 
-  function claimOwnership() public onlyPendingOwner {
-    owner = pendingOwner;
-  }
+    function claimOwnership() public onlyPendingOwner {
+        owner = pendingOwner;
+    }
 }
 
 contract Destructible is Ownable {
 
-  function destroy() public onlyOwner {
-    selfdestruct(msg.sender);
-  }
+    function destroy() public onlyOwner {
+        selfdestruct(msg.sender);
+    }
 }
 
 contract WithClaim {
 
-  event Claim(string data);
+    event Claim(string data);
 }
 
 // older version:
@@ -70,9 +70,9 @@ contract WithClaim {
 
 contract UserfeedsClaimWithoutValueTransfer is Destructible, WithClaim {
 
-  function post(string data) public {
-    emit Claim(data);
-  }
+    function post(string data) public {
+        emit Claim(data);
+    }
 }
 
 // older version:
@@ -83,10 +83,10 @@ contract UserfeedsClaimWithoutValueTransfer is Destructible, WithClaim {
 
 contract UserfeedsClaimWithValueTransfer is Destructible, WithClaim {
 
-  function post(address userfeed, string data) public payable {
-    emit Claim(data);
-    userfeed.transfer(msg.value);
-  }
+    function post(address userfeed, string data) public payable {
+        emit Claim(data);
+        userfeed.transfer(msg.value);
+    }
 }
 
 // older version:
@@ -97,10 +97,10 @@ contract UserfeedsClaimWithValueTransfer is Destructible, WithClaim {
 
 contract UserfeedsClaimWithTokenTransfer is Destructible, WithClaim {
 
-  function post(address userfeed, ERC20 token, uint value, string data) public {
-    emit Claim(data);
-    require(token.transferFrom(msg.sender, userfeed, value));
-  }
+    function post(address userfeed, ERC20 token, uint value, string data) public {
+        emit Claim(data);
+        require(token.transferFrom(msg.sender, userfeed, value));
+    }
 }
 
 // Rinkeby: 0x73cDd7e5Cf3DA3985f985298597D404A90878BD9
@@ -109,31 +109,31 @@ contract UserfeedsClaimWithTokenTransfer is Destructible, WithClaim {
 
 contract UserfeedsClaimWithValueMultiSendUnsafe is Destructible, WithClaim {
 
-  function post(string data, address[] recipients) public payable {
-    emit Claim(data);
-    send(recipients);
-  }
-
-  function post(string data, bytes20[] recipients) public payable {
-    emit Claim(data);
-    send(recipients);
-  }
-
-  function send(address[] recipients) public payable {
-    uint amount = msg.value / recipients.length;
-    for (uint i = 0; i < recipients.length; i++) {
-      recipients[i].send(amount);
+    function post(string data, address[] recipients) public payable {
+        emit Claim(data);
+        send(recipients);
     }
-    msg.sender.transfer(address(this).balance);
-  }
 
-  function send(bytes20[] recipients) public payable {
-    uint amount = msg.value / recipients.length;
-    for (uint i = 0; i < recipients.length; i++) {
-      address(recipients[i]).send(amount);
+    function post(string data, bytes20[] recipients) public payable {
+        emit Claim(data);
+        send(recipients);
     }
-    msg.sender.transfer(address(this).balance);
-  }
+
+    function send(address[] recipients) public payable {
+        uint amount = msg.value / recipients.length;
+        for (uint i = 0; i < recipients.length; i++) {
+            recipients[i].send(amount);
+        }
+        msg.sender.transfer(address(this).balance);
+    }
+
+    function send(bytes20[] recipients) public payable {
+        uint amount = msg.value / recipients.length;
+        for (uint i = 0; i < recipients.length; i++) {
+            address(recipients[i]).send(amount);
+        }
+        msg.sender.transfer(address(this).balance);
+    }
 }
 
 // Mainnet: 0xfad31a5672fBd8243E9691E8a5F958699CD0AaA9
@@ -143,17 +143,17 @@ contract UserfeedsClaimWithValueMultiSendUnsafe is Destructible, WithClaim {
 
 contract UserfeedsClaimWithConfigurableValueMultiTransfer is Destructible, WithClaim {
 
-  function post(string data, address[] recipients, uint[] values) public payable {
-    emit Claim(data);
-    transfer(recipients, values);
-  }
-
-  function transfer(address[] recipients, uint[] values) public payable {
-    for (uint i = 0; i < recipients.length; i++) {
-      recipients[i].transfer(values[i]);
+    function post(string data, address[] recipients, uint[] values) public payable {
+        emit Claim(data);
+        transfer(recipients, values);
     }
-    msg.sender.transfer(address(this).balance);
-  }
+
+    function transfer(address[] recipients, uint[] values) public payable {
+        for (uint i = 0; i < recipients.length; i++) {
+            recipients[i].transfer(values[i]);
+        }
+        msg.sender.transfer(address(this).balance);
+    }
 }
 
 // Mainnet: 0xeCBED48098C4F25a16195c45DdF5fD736E28B14b
@@ -163,16 +163,16 @@ contract UserfeedsClaimWithConfigurableValueMultiTransfer is Destructible, WithC
 
 contract UserfeedsClaimWithConfigurableTokenMultiTransfer is Destructible, WithClaim {
 
-  function post(string data, address[] recipients, ERC20 token, uint[] values) public {
-    emit Claim(data);
-    transfer(recipients, token, values);
-  }
-
-  function transfer(address[] recipients, ERC20 token, uint[] values) public {
-    for (uint i = 0; i < recipients.length; i++) {
-      require(token.transferFrom(msg.sender, recipients[i], values[i]));
+    function post(string data, address[] recipients, ERC20 token, uint[] values) public {
+        emit Claim(data);
+        transfer(recipients, token, values);
     }
-  }
+
+    function transfer(address[] recipients, ERC20 token, uint[] values) public {
+        for (uint i = 0; i < recipients.length; i++) {
+            require(token.transferFrom(msg.sender, recipients[i], values[i]));
+        }
+    }
 }
 
 // Rinkeby: 0x042a52f30572A54f504102cc1Fbd1f2B53859D8A
@@ -181,14 +181,14 @@ contract UserfeedsClaimWithConfigurableTokenMultiTransfer is Destructible, WithC
 
 contract UserfeedsClaimWithConfigurableTokenMultiTransferNoCheck is Destructible, WithClaim {
 
-  function post(string data, address[] recipients, ERC721 token, uint[] values) public {
-    emit Claim(data);
-    transfer(recipients, token, values);
-  }
-
-  function transfer(address[] recipients, ERC721 token, uint[] values) public {
-    for (uint i = 0; i < recipients.length; i++) {
-      token.transferFrom(msg.sender, recipients[i], values[i]);
+    function post(string data, address[] recipients, ERC721 token, uint[] values) public {
+        emit Claim(data);
+        transfer(recipients, token, values);
     }
-  }
+
+    function transfer(address[] recipients, ERC721 token, uint[] values) public {
+        for (uint i = 0; i < recipients.length; i++) {
+            token.transferFrom(msg.sender, recipients[i], values[i]);
+        }
+    }
 }
