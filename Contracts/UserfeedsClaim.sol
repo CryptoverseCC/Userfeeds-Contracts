@@ -62,7 +62,6 @@ contract WithClaim {
     event Claim(string data);
 }
 
-// older version:
 // Mainnet: 0xFd74f0ce337fC692B8c124c094c1386A14ec7901
 // Rinkeby: 0xC5De286677AC4f371dc791022218b1c13B72DbBd
 // Ropsten: 0x6f32a6F579CFEed1FFfDc562231C957ECC894001
@@ -75,7 +74,6 @@ contract UserfeedsClaimWithoutValueTransfer is Destructible, WithClaim {
     }
 }
 
-// older version:
 // Mainnet: 0x70B610F7072E742d4278eC55C02426Dbaaee388C
 // Rinkeby: 0x00034B8397d9400117b4298548EAa59267953F8c
 // Ropsten: 0x37C1CA7996CDdAaa31e13AA3eEE0C89Ee4f665B5
@@ -89,7 +87,6 @@ contract UserfeedsClaimWithValueTransfer is Destructible, WithClaim {
     }
 }
 
-// older version:
 // Mainnet: 0xfF8A1BA752fE5df494B02D77525EC6Fa76cecb93
 // Rinkeby: 0xBd2A0FF74dE98cFDDe4653c610E0E473137534fB
 // Ropsten: 0x54b4372fA0bd76664B48625f0e8c899Ff19DFc39
