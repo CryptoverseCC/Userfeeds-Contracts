@@ -8,9 +8,10 @@
  * 5) Multi - optional, means there are multiple recipients
  * 6) Send or Transfer - using send or transfer in case of ether, or transferFrom in case of ERC20/ERC721 (no "Send" possible in this case)
  * 7) Unsafe or NoCheck - optional, means that value returned from send or transferFrom is not checked
+ * 8) VerifySig - optional, means there is some kind of check to verify signature
  */
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.25;
 
 interface ERC20 {
 
@@ -24,8 +25,8 @@ interface ERC721 {
 
 contract Ownable {
 
-    address owner;
-    address pendingOwner;
+    address public owner;
+    address public pendingOwner;
 
     modifier onlyOwner {
         require(msg.sender == owner);
@@ -187,5 +188,56 @@ contract UserfeedsClaimWithConfigurableTokenMultiTransferNoCheck is Destructible
         for (uint i = 0; i < recipients.length; i++) {
             token.transferFrom(msg.sender, recipients[i], values[i]);
         }
+    }
+}
+
+contract UserfeedsClaimWithConfigurableValueMultiTransferVerifySig is Destructible, WithClaim {
+
+    address public signer;
+    uint public initialCap = 10 finney;
+    uint public doubleCapAfter = 7 days;
+    mapping (string => uint) private threadIdToPayment;
+
+    function post(string data, string threadId, uint threadCreationTimestamp, address[] recipients, uint[] ratios, uint ratiosSum, uint maxTimestamp, uint8 v, bytes32 r, bytes32 s) public payable {
+        require(msg.value >= initialCap / 10);
+        require(block.timestamp <= maxTimestamp);
+        require(ecrecover(keccak256(abi.encodePacked(data, threadId, threadCreationTimestamp, recipients, ratios, ratiosSum, maxTimestamp)), v, r, s) == signer);
+        emit Claim(data);
+        transfer(threadId, threadCreationTimestamp, recipients, ratios, ratiosSum);
+        msg.sender.transfer(address(this).balance);
+    }
+
+    function transfer(string threadId, uint threadCreationTimestamp, address[] recipients, uint[] ratios, uint ratiosSum) private {
+        uint max = maxAllowedPayment(threadId, threadCreationTimestamp);
+        uint payment = max < msg.value ? max : msg.value;
+        for (uint i = 0; i < recipients.length; i++) {
+            recipients[i].transfer(payment * ratios[i] / ratiosSum);
+        }
+        threadIdToPayment[threadId] += payment;
+    }
+
+    function maxAllowedPayment(string threadId, uint threadCreationTimestamp) public view returns (uint) {
+        uint howOld = block.timestamp > threadCreationTimestamp ? block.timestamp - threadCreationTimestamp : 0;
+        uint cap;
+        if (howOld < 16 * doubleCapAfter) {
+            uint base = initialCap << (howOld / doubleCapAfter);
+            cap = base + base * (howOld % doubleCapAfter) / doubleCapAfter;
+        } else {
+            cap = uint(-1);
+        }
+        uint payment = threadIdToPayment[threadId];
+        return cap > payment ? cap - payment : 0;
+    }
+
+    function setSigner(address newSigner) external onlyOwner {
+        signer = newSigner;
+    }
+
+    function setInitialCap(uint newInitialCap) external onlyOwner {
+        initialCap = newInitialCap;
+    }
+
+    function setDoubleCapAfter(uint newDoubleCapAfter) external onlyOwner {
+        doubleCapAfter = newDoubleCapAfter;
     }
 }
