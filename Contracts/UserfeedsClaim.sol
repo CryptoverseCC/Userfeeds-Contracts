@@ -191,8 +191,18 @@ contract UserfeedsClaimWithConfigurableTokenMultiTransferNoCheck is Destructible
     }
 }
 
+contract Forwarder {
+    
+    function forward(address addr) external payable {
+        addr.transfer(msg.value);
+    }
+}
+
+// Kovan:   0x53B7C52090750c30a40baBd50024588e527292c3
+
 contract UserfeedsClaimWithConfigurableValueMultiTransferVerifySig is Destructible, WithClaim {
 
+    Forwarder public forwarder = new Forwarder();
     address public signer;
     uint public initialCap = 10 finney;
     uint public doubleCapAfter = 7 days;
@@ -204,7 +214,10 @@ contract UserfeedsClaimWithConfigurableValueMultiTransferVerifySig is Destructib
         require(ecrecover(keccak256(abi.encodePacked(data, threadId, threadCreationTimestamp, recipients, ratios, ratiosSum, maxTimestamp)), v, r, s) == signer);
         emit Claim(data);
         transfer(threadId, threadCreationTimestamp, recipients, ratios, ratiosSum);
-        msg.sender.transfer(address(this).balance);
+        uint balance = address(this).balance;
+        if (balance > 0) {
+            forwarder.forward.value(balance)(msg.sender);
+        }
     }
 
     function transfer(string threadId, uint threadCreationTimestamp, address[] recipients, uint[] ratios, uint ratiosSum) private {
